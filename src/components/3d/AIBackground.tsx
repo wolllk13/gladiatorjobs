@@ -100,18 +100,16 @@ const EnergyWave = ({ position }: { position: [number, number, number] }) => {
   const ringsRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
-    if (ringsRef.current) {
-      ringsRef.current.children.forEach((ring, i) => {
-        const scale = ((state.clock.elapsedTime * 0.5 + i * 0.3) % 2);
-        ring.scale.setScalar(scale);
-        (ring as THREE.Mesh).material = new THREE.MeshStandardMaterial({
-          color: "#8b5cf6",
-          transparent: true,
-          opacity: Math.max(0, 1 - scale / 2),
-          side: THREE.DoubleSide,
-        });
-      });
-    }
+    if (!ringsRef.current) return;
+
+    ringsRef.current.children.forEach((child, i) => {
+      const ring = child as THREE.Mesh;
+      const mat = ring.material as THREE.MeshStandardMaterial;
+      const scale = ((state.clock.elapsedTime * 0.5 + i * 0.3) % 2);
+
+      ring.scale.setScalar(Math.max(0.01, scale));
+      mat.opacity = Math.max(0, 1 - scale / 2);
+    });
   });
 
   return (
@@ -377,7 +375,7 @@ const Scene = () => {
 
 const AIBackground = () => {
   return (
-    <div className="fixed inset-0 -z-10">
+    <div className="fixed inset-0 -z-10 pointer-events-none">
       <Canvas
         camera={{ position: [0, 0, 6], fov: 60 }}
         style={{ background: 'transparent' }}
@@ -392,3 +390,4 @@ const AIBackground = () => {
 };
 
 export default AIBackground;
+
