@@ -70,7 +70,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-transparent relative flex">
       {/* Left Panel - Form */}
       <div className="flex-1 flex flex-col">
         {/* Header */}

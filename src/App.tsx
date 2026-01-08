@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import AIBackground from "@/components/3d/AIBackground";
 import Index from "./pages/Index";
+import Categories from "./pages/Categories";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Talent from "./pages/Talent";
@@ -26,6 +27,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/categories" element={<Categories />} />
             <Route path="/talent" element={<Talent />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -39,3 +41,4 @@ const App = () => (
 );
 
 export default App;
+
