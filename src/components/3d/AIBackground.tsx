@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { Canvas, useFrame, extend } from '@react-three/fiber';
-import { Float, Sphere, Box, Torus, Octahedron, Line } from '@react-three/drei';
+import { Float, Sphere, Box, Torus, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Floating geometric shapes representing AI/tech elements
@@ -12,7 +12,7 @@ const FloatingShape = ({
   rotationSpeed = 0.5 
 }: { 
   position: [number, number, number];
-  shape: 'sphere' | 'box' | 'torus' | 'octahedron';
+  shape: 'sphere' | 'box' | 'torus' | 'diamond';
   color: string;
   scale?: number;
   rotationSpeed?: number;
@@ -27,27 +27,57 @@ const FloatingShape = ({
     }
   });
 
-  const ShapeComponent = {
-    sphere: Sphere,
-    box: Box,
-    torus: Torus,
-    octahedron: Octahedron,
-  }[shape];
+  // Render different shapes based on type
+  const renderShape = () => {
+    const materialProps = {
+      color,
+      transparent: true,
+      opacity: 0.6,
+      metalness: 0.8,
+      roughness: 0.2,
+    };
 
-  const args = shape === 'torus' ? [0.3, 0.1, 16, 32] : shape === 'sphere' ? [0.3, 32, 32] : [0.4, 0.4, 0.4];
+    switch (shape) {
+      case 'sphere':
+        return (
+          <Sphere ref={meshRef} position={position} args={[0.3, 32, 32]} scale={scale}>
+            <meshStandardMaterial {...materialProps} />
+          </Sphere>
+        );
+      case 'box':
+        return (
+          <Box ref={meshRef} position={position} args={[0.4, 0.4, 0.4]} scale={scale}>
+            <meshStandardMaterial {...materialProps} />
+          </Box>
+        );
+      case 'torus':
+        return (
+          <Torus ref={meshRef} position={position} args={[0.3, 0.1, 16, 32]} scale={scale}>
+            <meshStandardMaterial {...materialProps} />
+          </Torus>
+        );
+      case 'diamond':
+        // Use two cones to create diamond shape instead of Octahedron
+        return (
+          <group ref={meshRef as any} position={position} scale={scale}>
+            <mesh>
+              <coneGeometry args={[0.3, 0.4, 4]} />
+              <meshStandardMaterial {...materialProps} wireframe />
+            </mesh>
+            <mesh rotation={[Math.PI, 0, 0]}>
+              <coneGeometry args={[0.3, 0.4, 4]} />
+              <meshStandardMaterial {...materialProps} wireframe />
+            </mesh>
+          </group>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
-      <ShapeComponent ref={meshRef} position={position} args={args as any} scale={scale}>
-        <meshStandardMaterial 
-          color={color} 
-          transparent 
-          opacity={0.6}
-          metalness={0.8}
-          roughness={0.2}
-          wireframe={shape === 'octahedron'}
-        />
-      </ShapeComponent>
+      {renderShape()}
     </Float>
   );
 };
@@ -238,8 +268,8 @@ const Scene = () => {
       <Gear position={[4, 2, -4]} scale={0.8} />
 
       {/* Floating geometric shapes */}
-      <FloatingShape position={[-3, 0, -1]} shape="octahedron" color="#8b5cf6" scale={1.2} />
-      <FloatingShape position={[3, 1, -2]} shape="octahedron" color="#6366f1" scale={0.8} />
+      <FloatingShape position={[-3, 0, -1]} shape="diamond" color="#8b5cf6" scale={1.2} />
+      <FloatingShape position={[3, 1, -2]} shape="diamond" color="#6366f1" scale={0.8} />
       <FloatingShape position={[0, -2, -1]} shape="torus" color="#a78bfa" scale={1} />
       <FloatingShape position={[-2, 2, -3]} shape="box" color="#4c1d95" scale={0.6} />
       <FloatingShape position={[2, -1, -2]} shape="sphere" color="#8b5cf6" scale={0.7} />
