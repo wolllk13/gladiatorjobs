@@ -34,6 +34,7 @@ export const translations = {
       title: 'Popular Categories',
       subtitle: 'Discover talented professionals across various industries and expertise areas.',
       viewAll: 'View All',
+      professionals: 'professionals',
       // Category names
       it: 'IT & Development',
       itDesc: 'Web, mobile, and software development specialists',
@@ -172,6 +173,7 @@ export const translations = {
       title: 'Популярные категории',
       subtitle: 'Откройте для себя талантливых профессионалов в различных сферах.',
       viewAll: 'Смотреть все',
+      professionals: 'специалистов',
       // Category names
       it: 'IT и Разработка',
       itDesc: 'Веб, мобильная и программная разработка',
