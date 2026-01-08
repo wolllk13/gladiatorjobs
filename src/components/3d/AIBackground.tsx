@@ -18,10 +18,10 @@ const EnergyOrb = ({
 
   useFrame((state) => {
     if (meshRef.current && glowRef.current) {
-      const pulse = Math.sin(state.clock.elapsedTime * 2) * 0.2 + 1;
+      const pulse = Math.sin(state.clock.elapsedTime * 0.5) * 0.1 + 1;
       meshRef.current.scale.setScalar(scale * pulse);
       glowRef.current.scale.setScalar(scale * pulse * 1.5);
-      meshRef.current.rotation.y += 0.01;
+      meshRef.current.rotation.y += 0.002;
     }
   });
 
@@ -64,11 +64,11 @@ const OrbitRing = ({
 
   useFrame((state) => {
     if (ringRef.current) {
-      ringRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.3) * 0.2;
-      ringRef.current.rotation.y += 0.002 * speed;
+      ringRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
+      ringRef.current.rotation.y += 0.0005 * speed;
     }
     if (particleRef.current) {
-      const angle = state.clock.elapsedTime * speed;
+      const angle = state.clock.elapsedTime * speed * 0.3;
       particleRef.current.position.x = Math.cos(angle) * radius;
       particleRef.current.position.z = Math.sin(angle) * radius;
     }
@@ -105,7 +105,7 @@ const EnergyWave = ({ position }: { position: [number, number, number] }) => {
     ringsRef.current.children.forEach((child, i) => {
       const ring = child as THREE.Mesh;
       const mat = ring.material as THREE.MeshStandardMaterial;
-      const scale = ((state.clock.elapsedTime * 0.5 + i * 0.3) % 2);
+      const scale = ((state.clock.elapsedTime * 0.15 + i * 0.3) % 2);
 
       ring.scale.setScalar(Math.max(0.01, scale));
       mat.opacity = Math.max(0, 1 - scale / 2);
@@ -166,15 +166,15 @@ const NeuralConnections = () => {
 
   useFrame((state) => {
     if (linesRef.current) {
-      linesRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
-      linesRef.current.rotation.x = Math.cos(state.clock.elapsedTime * 0.05) * 0.05;
+      linesRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.03) * 0.05;
+      linesRef.current.rotation.x = Math.cos(state.clock.elapsedTime * 0.02) * 0.03;
     }
   });
 
   return (
     <group ref={linesRef}>
       {points.map((point, i) => (
-        <Float key={i} speed={2} floatIntensity={0.3}>
+        <Float key={i} speed={0.5} floatIntensity={0.15}>
           <Sphere position={point} args={[0.06, 16, 16]}>
             <meshStandardMaterial 
               color="#8b5cf6" 
@@ -204,8 +204,8 @@ const HologramDisplay = ({ position }: { position: [number, number, number] }) =
 
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.3;
-      groupRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime) * 0.1;
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.08;
+      groupRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.3) * 0.05;
     }
   });
 
@@ -246,7 +246,7 @@ const Gear = ({ position, scale = 1 }: { position: [number, number, number]; sca
 
   useFrame(() => {
     if (gearRef.current) {
-      gearRef.current.rotation.z += 0.005;
+      gearRef.current.rotation.z += 0.001;
     }
   });
 
@@ -271,7 +271,7 @@ const DataStream = ({ startPos, endPos }: { startPos: [number, number, number]; 
   useFrame((state) => {
     if (particlesRef.current) {
       particlesRef.current.children.forEach((particle, i) => {
-        const t = ((state.clock.elapsedTime * particles[i].speed + particles[i].offset) % 1);
+        const t = ((state.clock.elapsedTime * particles[i].speed * 0.15 + particles[i].offset) % 1);
         particle.position.x = startPos[0] + (endPos[0] - startPos[0]) * t;
         particle.position.y = startPos[1] + (endPos[1] - startPos[1]) * t;
         particle.position.z = startPos[2] + (endPos[2] - startPos[2]) * t;
@@ -339,12 +339,12 @@ const Scene = () => {
       <Gear position={[5, 1, -5]} scale={0.8} />
 
       {/* Floating torus shapes */}
-      <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
+      <Float speed={0.5} rotationIntensity={0.2} floatIntensity={0.3}>
         <Torus position={[0, -2, -1]} args={[0.3, 0.1, 16, 32]}>
           <meshStandardMaterial color="#a78bfa" transparent opacity={0.6} metalness={0.8} roughness={0.2} />
         </Torus>
       </Float>
-      <Float speed={1.5} rotationIntensity={0.4} floatIntensity={0.8}>
+      <Float speed={0.4} rotationIntensity={0.15} floatIntensity={0.25}>
         <Torus position={[-4, -1, -2]} args={[0.25, 0.08, 16, 32]}>
           <meshStandardMaterial color="#6366f1" transparent opacity={0.5} metalness={0.8} roughness={0.2} />
         </Torus>
@@ -352,7 +352,7 @@ const Scene = () => {
 
       {/* Floating particles */}
       {[...Array(25)].map((_, i) => (
-        <Float key={i} speed={1 + Math.random()} rotationIntensity={0.3} floatIntensity={0.5}>
+        <Float key={i} speed={0.3 + Math.random() * 0.3} rotationIntensity={0.1} floatIntensity={0.15}>
           <Sphere
             position={[
               (Math.random() - 0.5) * 14,
