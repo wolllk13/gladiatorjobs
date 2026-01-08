@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/home/HeroSection";
-import JobsSection from "@/components/home/JobsSection";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import HowItWorksSection from "@/components/home/HowItWorksSection";
 import CTASection from "@/components/home/CTASection";
@@ -22,11 +21,10 @@ const Index = () => {
   }, [location.hash]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent relative">
       <Header />
-      <main>
+      <main className="relative z-10">
         <HeroSection />
-        <JobsSection />
         <CategoriesSection />
         <HowItWorksSection />
         <CTASection />
@@ -37,3 +35,5 @@ const Index = () => {
 };
 
 export default Index;
+
+

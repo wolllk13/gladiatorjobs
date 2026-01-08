@@ -19,9 +19,6 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        heading: "hsl(var(--heading))",
-        link: "hsl(var(--link))",
-        success: "hsl(var(--success))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -65,14 +62,6 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      fontSize: {
-        // Typography scale as per requirements
-        'display': ['2.25rem', { lineHeight: '1.2', fontWeight: '700' }], // 36px H1
-        'heading': ['1.75rem', { lineHeight: '1.3', fontWeight: '700' }], // 28px H2
-        'subheading': ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }], // 20px H3
-        'body': ['1rem', { lineHeight: '1.5' }], // 16px
-        'small': ['0.875rem', { lineHeight: '1.5' }], // 14px
       },
       keyframes: {
         "accordion-down": {
