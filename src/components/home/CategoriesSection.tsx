@@ -149,7 +149,7 @@ const CategoriesSection = () => {
                   {/* Count & Arrow */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      {category.count.toLocaleString()} professionals
+                      {category.count.toLocaleString()} {t.categories.professionals}
                     </span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                   </div>
