@@ -63,15 +63,18 @@ const HeroSection = () => {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in stagger-4">
-            <Link to="/#categories">
-              <Button 
-                size="lg" 
-                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-base font-medium group"
-              >
-                {t.hero.cta.findTalent}
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              onClick={() => {
+                const el = document.getElementById('categories');
+                if (!el) return;
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-base font-medium group"
+            >
+              {t.hero.cta.findTalent}
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
             <Link to="/register">
               <Button 
                 variant="outline" 
