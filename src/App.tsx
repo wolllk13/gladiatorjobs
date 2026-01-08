@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Talent from "./pages/Talent";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
