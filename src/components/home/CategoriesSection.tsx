@@ -92,14 +92,18 @@ const CategoriesSection = () => {
   ];
 
   return (
-    <section id="categories" className="py-20 md:py-32 bg-card/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="categories" className="py-20 md:py-32 bg-background relative overflow-hidden">
+      {/* Ambient glow effects */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border text-sm text-muted-foreground mb-6">
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary mb-6">
             {t.categories.badge}
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium text-foreground mb-4">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             {t.categories.title}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -107,8 +111,11 @@ const CategoriesSection = () => {
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Categories Grid with 3D perspective */}
+        <div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          style={{ perspective: '1200px' }}
+        >
           {categories.map((category, index) => {
             const Icon = category.icon;
             return (
@@ -116,33 +123,45 @@ const CategoriesSection = () => {
                 key={category.id}
                 to={`/categories/${category.id}`}
                 className={cn(
-                  "group relative p-6 rounded-2xl bg-card border border-border",
-                  "hover:border-primary/30 hover:shadow-lg transition-all duration-300",
-                  "opacity-0 animate-fade-in"
+                  "group relative p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border",
+                  "transition-all duration-500 ease-out",
+                  "hover:border-primary/50",
+                  "animate-fade-in",
+                  // 3D transform on hover
+                  "hover:[transform:rotateX(-5deg)_rotateY(5deg)_translateZ(20px)]",
+                  "hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.25)]"
                 )}
-                style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
+                style={{ 
+                  animationDelay: `${index * 0.1}s`, 
+                  animationFillMode: 'forwards',
+                  transformStyle: 'preserve-3d',
+                }}
               >
                 {/* Gradient background on hover */}
                 <div className={cn(
-                  "absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity",
+                  "absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500",
                   category.gradient
                 )} />
                 
-                <div className="relative">
-                  {/* Icon */}
+                {/* Floating glow effect */}
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
+                
+                <div className="relative" style={{ transform: 'translateZ(30px)' }}>
+                  {/* Icon with 3D float */}
                   <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center mb-4",
-                    "bg-secondary group-hover:scale-110 transition-transform",
+                    "w-14 h-14 rounded-xl flex items-center justify-center mb-4",
+                    "bg-gradient-to-br from-secondary to-secondary/50 shadow-lg",
+                    "group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300",
                     category.iconColor
                   )}>
-                    <Icon className="w-6 h-6" />
+                    <Icon className="w-7 h-7" />
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-lg font-semibold text-foreground mb-2 font-sans">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
                     {category.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                     {category.description}
                   </p>
 
@@ -151,7 +170,7 @@ const CategoriesSection = () => {
                     <span className="text-sm text-muted-foreground">
                       {category.count.toLocaleString()} {t.categories.professionals}
                     </span>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-2 transition-all duration-300" />
                   </div>
                 </div>
               </Link>
@@ -163,7 +182,7 @@ const CategoriesSection = () => {
         <div className="text-center mt-12">
           <Link
             to="/categories"
-            className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 font-medium transition-all duration-300 hover:scale-105"
           >
             {t.categories.viewAll}
             <ArrowRight className="w-4 h-4" />
