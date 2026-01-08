@@ -31,10 +31,10 @@ const Footer = () => {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">Г</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">G</span>
               </div>
-              <span className="text-xl font-semibold text-foreground">Гладиатор</span>
+              <span className="text-xl font-semibold text-foreground">Gladiator Jobs</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs">
               {t.footer.description}
@@ -102,7 +102,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Гладиатор. {t.footer.rights}
+            © {new Date().getFullYear()} Gladiator Jobs. {t.footer.rights}
           </p>
           <div className="flex items-center gap-6">
             <a
