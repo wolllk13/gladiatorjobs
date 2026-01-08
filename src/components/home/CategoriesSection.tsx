@@ -23,8 +23,6 @@ const CategoriesSection = () => {
       title: t.categories.it,
       description: t.categories.itDesc,
       count: 1240,
-      gradient: 'from-blue-500/20 to-cyan-500/20',
-      iconColor: 'text-blue-400',
     },
     {
       id: 'marketing',
@@ -32,8 +30,6 @@ const CategoriesSection = () => {
       title: t.categories.marketing,
       description: t.categories.marketingDesc,
       count: 856,
-      gradient: 'from-green-500/20 to-emerald-500/20',
-      iconColor: 'text-green-400',
     },
     {
       id: 'design',
@@ -41,8 +37,6 @@ const CategoriesSection = () => {
       title: t.categories.design,
       description: t.categories.designDesc,
       count: 743,
-      gradient: 'from-pink-500/20 to-rose-500/20',
-      iconColor: 'text-pink-400',
     },
     {
       id: 'writing',
@@ -50,8 +44,6 @@ const CategoriesSection = () => {
       title: t.categories.writing,
       description: t.categories.writingDesc,
       count: 612,
-      gradient: 'from-orange-500/20 to-amber-500/20',
-      iconColor: 'text-orange-400',
     },
     {
       id: 'video',
@@ -59,8 +51,6 @@ const CategoriesSection = () => {
       title: t.categories.video,
       description: t.categories.videoDesc,
       count: 428,
-      gradient: 'from-purple-500/20 to-violet-500/20',
-      iconColor: 'text-purple-400',
     },
     {
       id: 'support',
@@ -68,8 +58,6 @@ const CategoriesSection = () => {
       title: t.categories.support,
       description: t.categories.supportDesc,
       count: 534,
-      gradient: 'from-teal-500/20 to-cyan-500/20',
-      iconColor: 'text-teal-400',
     },
     {
       id: 'finance',
@@ -77,8 +65,6 @@ const CategoriesSection = () => {
       title: t.categories.finance,
       description: t.categories.financeDesc,
       count: 287,
-      gradient: 'from-yellow-500/20 to-amber-500/20',
-      iconColor: 'text-yellow-400',
     },
     {
       id: 'consulting',
@@ -86,24 +72,18 @@ const CategoriesSection = () => {
       title: t.categories.consulting,
       description: t.categories.consultingDesc,
       count: 195,
-      gradient: 'from-indigo-500/20 to-blue-500/20',
-      iconColor: 'text-indigo-400',
     },
   ];
 
   return (
-    <section id="categories" className="py-20 md:py-32 bg-background relative overflow-hidden">
-      {/* Ambient glow effects */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <section id="categories" className="py-16 md:py-24 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary mb-6">
+        <div className="text-center mb-12">
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary text-sm font-medium mb-4">
             {t.categories.badge}
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+          <h2 className="text-heading md:text-4xl text-heading mb-4">
             {t.categories.title}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -111,11 +91,8 @@ const CategoriesSection = () => {
           </p>
         </div>
 
-        {/* Categories Grid with 3D perspective */}
-        <div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          style={{ perspective: '1200px' }}
-        >
+        {/* Categories Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {categories.map((category, index) => {
             const Icon = category.icon;
             return (
@@ -123,55 +100,31 @@ const CategoriesSection = () => {
                 key={category.id}
                 to={`/categories/${category.id}`}
                 className={cn(
-                  "group relative p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border",
-                  "transition-all duration-500 ease-out",
-                  "hover:border-primary/50",
-                  "animate-fade-in",
-                  // 3D transform on hover
-                  "hover:[transform:rotateX(-5deg)_rotateY(5deg)_translateZ(20px)]",
-                  "hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.25)]"
+                  "group bg-card rounded-xl p-6 card-shadow transition-all duration-300",
+                  "hover:shadow-lg hover:-translate-y-1 no-underline",
+                  "animate-fade-in"
                 )}
-                style={{ 
-                  animationDelay: `${index * 0.1}s`, 
-                  animationFillMode: 'forwards',
-                  transformStyle: 'preserve-3d',
-                }}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                {/* Gradient background on hover */}
-                <div className={cn(
-                  "absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-                  category.gradient
-                )} />
-                
-                {/* Floating glow effect */}
-                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-                
-                <div className="relative" style={{ transform: 'translateZ(30px)' }}>
-                  {/* Icon with 3D float */}
-                  <div className={cn(
-                    "w-14 h-14 rounded-xl flex items-center justify-center mb-4",
-                    "bg-gradient-to-br from-secondary to-secondary/50 shadow-lg",
-                    "group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300",
-                    category.iconColor
-                  )}>
-                    <Icon className="w-7 h-7" />
-                  </div>
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <Icon className="w-6 h-6 text-secondary group-hover:text-primary-foreground" strokeWidth={1.5} />
+                </div>
 
-                  {/* Content */}
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    {category.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {category.description}
-                  </p>
+                {/* Content */}
+                <h3 className="text-subheading text-heading mb-2 group-hover:text-primary transition-colors">
+                  {category.title}
+                </h3>
+                <p className="text-small text-muted-foreground mb-4 line-clamp-2">
+                  {category.description}
+                </p>
 
-                  {/* Count & Arrow */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {category.count.toLocaleString()} {t.categories.professionals}
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-2 transition-all duration-300" />
-                  </div>
+                {/* Count */}
+                <div className="flex items-center justify-between">
+                  <span className="text-small text-muted-foreground">
+                    {category.count.toLocaleString()} {t.categories.professionals}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" strokeWidth={1.5} />
                 </div>
               </Link>
             );
@@ -179,13 +132,13 @@ const CategoriesSection = () => {
         </div>
 
         {/* View All Link */}
-        <div className="text-center mt-12">
+        <div className="text-center">
           <Link
             to="/categories"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 font-medium transition-all duration-300 hover:scale-105"
+            className="inline-flex items-center gap-2 text-link font-medium hover:underline no-underline group"
           >
             {t.categories.viewAll}
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={1.5} />
           </Link>
         </div>
       </div>
