@@ -8,28 +8,29 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Background gradient */}
-      <div 
-        className="absolute inset-0 opacity-50"
+      {/* Animated background gradient */}
+      <div
+        className="absolute inset-0 opacity-60 animate-gradient"
         style={{ background: 'var(--gradient-hero)' }}
       />
-      
 
-      {/* Accent glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-accent/10 blur-[120px] pointer-events-none" />
+      {/* Multiple accent glows for depth */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-accent/10 blur-[120px] pointer-events-none animate-glow-pulse" />
+      <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/10 blur-[100px] pointer-events-none animate-glow-pulse" style={{ animationDelay: '1.5s' }} />
+      <div className="absolute bottom-1/3 left-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/10 blur-[110px] pointer-events-none animate-glow-pulse" style={{ animationDelay: '3s' }} />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
         <div className="text-center max-w-4xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border mb-8 animate-fade-in">
-            <Sparkles className="w-4 h-4 text-accent" />
-            <span className="text-sm text-muted-foreground">{t.hero.badge}</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/30 mb-8 animate-scale-in glow-primary/30 group cursor-default">
+            <Sparkles className="w-4 h-4 text-accent animate-float" />
+            <span className="text-sm font-medium gradient-text">{t.hero.badge}</span>
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium leading-tight mb-6 animate-fade-in stagger-1">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-slide-up stagger-1">
             <span className="text-foreground">{t.hero.title} </span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+            <span className="gradient-text animate-gradient inline-block">
               {t.hero.titleHighlight}
             </span>
             <br />
@@ -53,7 +54,7 @@ const HeroSection = () => {
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in stagger-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-scale-in stagger-4">
             <Button
               size="lg"
               onClick={() => {
@@ -61,16 +62,16 @@ const HeroSection = () => {
                 if (!el) return;
                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-base font-medium group"
+              className="w-full sm:w-auto bg-gradient-to-r from-primary to-accent hover:shadow-2xl hover:shadow-primary/50 text-primary-foreground px-8 py-6 text-base font-semibold group transition-all duration-300 hover:scale-105 glow-primary"
             >
               {t.hero.cta.findTalent}
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Link to="/register">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="lg"
-                className="w-full sm:w-auto border-border hover:bg-secondary/50 px-8 py-6 text-base"
+                className="w-full sm:w-auto glass border-primary/50 hover:bg-primary/10 hover:border-primary px-8 py-6 text-base font-semibold transition-all duration-300 hover:scale-105"
               >
                 {t.hero.cta.joinAsPro}
               </Button>
@@ -78,18 +79,18 @@ const HeroSection = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 mt-20 pt-10 border-t border-border/50 animate-fade-in stagger-5">
-            <div>
-              <p className="text-3xl md:text-4xl font-semibold text-foreground font-sans">5,000+</p>
-              <p className="text-sm text-muted-foreground mt-1">{t.hero.stats.professionals}</p>
+          <div className="grid grid-cols-3 gap-8 mt-20 pt-10 border-t border-primary/20 animate-slide-up stagger-5">
+            <div className="group cursor-default">
+              <p className="text-3xl md:text-4xl font-bold gradient-text group-hover:scale-110 transition-transform duration-300">5,000+</p>
+              <p className="text-sm text-muted-foreground mt-2 font-medium">{t.hero.stats.professionals}</p>
             </div>
-            <div>
-              <p className="text-3xl md:text-4xl font-semibold text-foreground font-sans">850+</p>
-              <p className="text-sm text-muted-foreground mt-1">{t.hero.stats.companies}</p>
+            <div className="group cursor-default">
+              <p className="text-3xl md:text-4xl font-bold gradient-text group-hover:scale-110 transition-transform duration-300">850+</p>
+              <p className="text-sm text-muted-foreground mt-2 font-medium">{t.hero.stats.companies}</p>
             </div>
-            <div>
-              <p className="text-3xl md:text-4xl font-semibold text-foreground font-sans">42</p>
-              <p className="text-sm text-muted-foreground mt-1">{t.hero.stats.countries}</p>
+            <div className="group cursor-default">
+              <p className="text-3xl md:text-4xl font-bold gradient-text group-hover:scale-110 transition-transform duration-300">42</p>
+              <p className="text-sm text-muted-foreground mt-2 font-medium">{t.hero.stats.countries}</p>
             </div>
           </div>
         </div>

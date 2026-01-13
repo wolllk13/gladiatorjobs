@@ -93,20 +93,21 @@ const CategoriesSection = () => {
 
   return (
     <section id="categories" className="py-20 md:py-32 bg-background relative overflow-hidden">
-      {/* Ambient glow effects */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
-      
+      {/* Ambient glow effects with animation */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-glow-pulse" />
+      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-glow-pulse" style={{ animationDelay: '2s' }} />
+      <div className="absolute top-1/2 right-1/3 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-glow-pulse" style={{ animationDelay: '1s' }} />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary mb-6">
+        <div className="text-center mb-16 animate-fade-in">
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/30 text-sm font-semibold gradient-text mb-6 glow-primary/20">
             {t.categories.badge}
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 animate-slide-up">
             {t.categories.title}
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-lg animate-slide-up stagger-1">
             {t.categories.subtitle}
           </p>
         </div>
@@ -121,18 +122,19 @@ const CategoriesSection = () => {
             return (
               <Link
                 key={category.id}
-                to={`/categories/${category.id}`}
+                to="/professionals"
                 className={cn(
-                  "group relative p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border",
+                  "group relative p-6 rounded-2xl glass border border-border/50",
                   "transition-all duration-500 ease-out",
-                  "hover:border-primary/50",
-                  "animate-fade-in",
-                  // 3D transform on hover
-                  "hover:[transform:rotateX(-5deg)_rotateY(5deg)_translateZ(20px)]",
-                  "hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.25)]"
+                  "hover:border-primary/70 hover:bg-card/60",
+                  "animate-scale-in",
+                  // 3D transform on hover with more dramatic effect
+                  "hover:[transform:rotateX(-8deg)_rotateY(8deg)_translateZ(30px)_scale(1.05)]",
+                  "hover:shadow-[0_30px_60px_-15px_rgba(139,92,246,0.4)]",
+                  "hover:z-10"
                 )}
-                style={{ 
-                  animationDelay: `${index * 0.1}s`, 
+                style={{
+                  animationDelay: `${index * 0.1}s`,
                   animationFillMode: 'forwards',
                   transformStyle: 'preserve-3d',
                 }}
@@ -142,35 +144,41 @@ const CategoriesSection = () => {
                   "absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500",
                   category.gradient
                 )} />
-                
-                {/* Floating glow effect */}
-                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
+
+                {/* Floating glow effect with shimmer */}
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary/30 to-accent/30 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 animate-glow-pulse" />
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-30 animate-shimmer" />
                 
                 <div className="relative" style={{ transform: 'translateZ(30px)' }}>
-                  {/* Icon with 3D float */}
+                  {/* Icon with 3D float and glow */}
                   <div className={cn(
-                    "w-14 h-14 rounded-xl flex items-center justify-center mb-4",
+                    "w-14 h-14 rounded-xl flex items-center justify-center mb-4 relative",
                     "bg-gradient-to-br from-secondary to-secondary/50 shadow-lg",
-                    "group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300",
+                    "group-hover:scale-125 group-hover:-translate-y-2 group-hover:rotate-6 transition-all duration-500",
                     category.iconColor
                   )}>
-                    <Icon className="w-7 h-7" />
+                    <Icon className="w-7 h-7 group-hover:animate-float" />
+                    {/* Icon glow */}
+                    <div className={cn(
+                      "absolute inset-0 rounded-xl blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-500",
+                      "bg-current"
+                    )} />
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                  <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">
                     {category.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2 group-hover:text-foreground/80 transition-colors duration-300">
                     {category.description}
                   </p>
 
                   {/* Count & Arrow */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm font-medium text-muted-foreground group-hover:gradient-text transition-all duration-300">
                       {category.count.toLocaleString()} {t.categories.professionals}
                     </span>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-2 transition-all duration-300" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-3 group-hover:scale-125 transition-all duration-500" />
                   </div>
                 </div>
               </Link>
@@ -179,13 +187,13 @@ const CategoriesSection = () => {
         </div>
 
         {/* View All Link */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-12 animate-fade-in stagger-2">
           <Link
-            to="/categories"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 font-medium transition-all duration-300 hover:scale-105"
+            to="/professionals"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full glass border border-primary/40 font-semibold gradient-text hover:border-primary hover:glow-primary group transition-all duration-500 hover:scale-110"
           >
             {t.categories.viewAll}
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-300" />
           </Link>
         </div>
       </div>

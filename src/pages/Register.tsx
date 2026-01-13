@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Upload, Check, Mail, User, Briefcase } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Upload, Check, Mail, User, Briefcase, Loader2, Building2, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 const CATEGORIES = [
   { id: 'it', labelKey: 'it' as const },
@@ -20,14 +22,25 @@ const CATEGORIES = [
 
 const Register = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    userType: 'professional' as 'professional' | 'client',
     selectedCategories: [] as string[],
     skills: '',
     displayName: '',
     photoPreview: null as string | null,
+    age: '',
+    bio: '',
+    companyName: '',
+    companyDescription: '',
+    website: '',
+    phone: '',
   });
 
   const steps = [
@@ -48,6 +61,7 @@ const Register = () => {
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setPhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, photoPreview: reader.result as string }));
@@ -56,12 +70,96 @@ const Register = () => {
     }
   };
 
+  const handleRegister = async () => {
+    setLoading(true);
+    try {
+      // 1. Регистрация пользователя
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.displayName,
+            user_type: formData.userType,
+          },
+        },
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Registration failed');
+
+      // 2. Загрузка аватара (если есть)
+      let avatarUrl = null;
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${authData.user.id}/avatar.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, photoFile, { upsert: true });
+
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+          avatarUrl = publicUrl;
+        }
+      }
+
+      // 3. Обновление профиля
+      const profileData: any = {
+        full_name: formData.displayName,
+        avatar_url: avatarUrl,
+        user_type: formData.userType,
+      };
+
+      if (formData.userType === 'professional') {
+        profileData.category = formData.selectedCategories[0] || null;
+        profileData.skills = formData.skills.split(',').map(s => s.trim()).filter(Boolean);
+        profileData.age = formData.age ? parseInt(formData.age) : null;
+        profileData.bio = formData.bio || null;
+      } else {
+        profileData.company_name = formData.companyName || null;
+        profileData.company_description = formData.companyDescription || null;
+        profileData.website = formData.website || null;
+        profileData.phone = formData.phone || null;
+      }
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(profileData)
+        .eq('id', authData.user.id);
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: 'Registration successful!',
+        description: 'Welcome to Gladiator Jobs! Redirecting to your dashboard...',
+      });
+
+      // Переход в личный кабинет
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (error: any) {
+      toast({
+        title: 'Registration failed',
+        description: error.message || 'Something went wrong',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const canProceed = () => {
     switch (step) {
       case 1:
         return formData.email && formData.password && formData.password.length >= 6;
       case 2:
-        return formData.selectedCategories.length > 0;
+        if (formData.userType === 'professional') {
+          return formData.selectedCategories.length > 0;
+        } else {
+          return formData.companyName.trim().length > 0;
+        }
       case 3:
         return formData.displayName.trim().length > 0;
       default:
@@ -140,6 +238,43 @@ const Register = () => {
                 </p>
 
                 <div className="space-y-4">
+                  {/* User Type Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-3">
+                      I want to register as
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, userType: 'professional' }))}
+                        className={cn(
+                          "p-4 rounded-xl border text-left transition-all flex flex-col items-center gap-2",
+                          formData.userType === 'professional'
+                            ? "border-primary bg-primary/10 text-foreground"
+                            : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/50"
+                        )}
+                      >
+                        <UserCircle className="w-6 h-6" />
+                        <span className="text-sm font-medium text-center">Professional</span>
+                        <span className="text-xs text-center opacity-70">Offering services</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, userType: 'client' }))}
+                        className={cn(
+                          "p-4 rounded-xl border text-left transition-all flex flex-col items-center gap-2",
+                          formData.userType === 'client'
+                            ? "border-primary bg-primary/10 text-foreground"
+                            : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/50"
+                        )}
+                      >
+                        <Building2 className="w-6 h-6" />
+                        <span className="text-sm font-medium text-center">Client</span>
+                        <span className="text-xs text-center opacity-70">Hiring talents</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       {t.auth.email}
@@ -169,54 +304,120 @@ const Register = () => {
               </div>
             )}
 
-            {/* Step 2: Skills */}
+            {/* Step 2: Skills or Company Info */}
             {step === 2 && (
               <div className="animate-fade-in">
-                <h1 className="text-3xl font-medium text-foreground mb-2">
-                  {t.registration.skillsStep.title}
-                </h1>
-                <p className="text-muted-foreground mb-8">
-                  {t.registration.skillsStep.subtitle}
-                </p>
+                {formData.userType === 'professional' ? (
+                  <>
+                    <h1 className="text-3xl font-medium text-foreground mb-2">
+                      {t.registration.skillsStep.title}
+                    </h1>
+                    <p className="text-muted-foreground mb-8">
+                      {t.registration.skillsStep.subtitle}
+                    </p>
 
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-3">
-                      {t.registration.skillsStep.selectCategory}
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {CATEGORIES.map((category) => (
-                        <button
-                          key={category.id}
-                          type="button"
-                          onClick={() => toggleCategory(category.id)}
-                          className={cn(
-                            "p-4 rounded-xl border text-left transition-all",
-                            formData.selectedCategories.includes(category.id)
-                              ? "border-primary bg-primary/10 text-foreground"
-                              : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/50"
-                          )}
-                        >
-                          <span className="text-sm font-medium">
-                            {t.categories[category.labelKey]}
-                          </span>
-                        </button>
-                      ))}
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-3">
+                          {t.registration.skillsStep.selectCategory}
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {CATEGORIES.map((category) => (
+                            <button
+                              key={category.id}
+                              type="button"
+                              onClick={() => toggleCategory(category.id)}
+                              className={cn(
+                                "p-4 rounded-xl border text-left transition-all",
+                                formData.selectedCategories.includes(category.id)
+                                  ? "border-primary bg-primary/10 text-foreground"
+                                  : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/50"
+                              )}
+                            >
+                              <span className="text-sm font-medium">
+                                {t.categories[category.labelKey]}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          {t.registration.skillsStep.describeSkills}
+                        </label>
+                        <Textarea
+                          value={formData.skills}
+                          onChange={(e) => setFormData(prev => ({ ...prev, skills: e.target.value }))}
+                          placeholder={t.registration.skillsStep.skillsPlaceholder}
+                          className="bg-secondary border-border min-h-[120px] resize-none"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="text-3xl font-medium text-foreground mb-2">
+                      Company Information
+                    </h1>
+                    <p className="text-muted-foreground mb-8">
+                      Tell us about your company
+                    </p>
 
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      {t.registration.skillsStep.describeSkills}
-                    </label>
-                    <Textarea
-                      value={formData.skills}
-                      onChange={(e) => setFormData(prev => ({ ...prev, skills: e.target.value }))}
-                      placeholder={t.registration.skillsStep.skillsPlaceholder}
-                      className="bg-secondary border-border min-h-[120px] resize-none"
-                    />
-                  </div>
-                </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Company Name
+                        </label>
+                        <Input
+                          type="text"
+                          value={formData.companyName}
+                          onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                          placeholder="Your Company Ltd."
+                          className="bg-secondary border-border"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Company Description
+                        </label>
+                        <Textarea
+                          value={formData.companyDescription}
+                          onChange={(e) => setFormData(prev => ({ ...prev, companyDescription: e.target.value }))}
+                          placeholder="Brief description of your company..."
+                          className="bg-secondary border-border min-h-[100px] resize-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Website <span className="text-muted-foreground font-normal">(optional)</span>
+                        </label>
+                        <Input
+                          type="url"
+                          value={formData.website}
+                          onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                          placeholder="https://yourcompany.com"
+                          className="bg-secondary border-border"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Phone <span className="text-muted-foreground font-normal">(optional)</span>
+                        </label>
+                        <Input
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="+1 234 567 8900"
+                          className="bg-secondary border-border"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -277,6 +478,33 @@ const Register = () => {
                       className="bg-secondary border-border"
                     />
                   </div>
+
+                  {/* Age */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Age <span className="text-muted-foreground font-normal">(optional)</span>
+                    </label>
+                    <Input
+                      type="number"
+                      value={formData.age}
+                      onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                      placeholder="25"
+                      className="bg-secondary border-border"
+                    />
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      About you <span className="text-muted-foreground font-normal">(optional)</span>
+                    </label>
+                    <Textarea
+                      value={formData.bio}
+                      onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                      placeholder="Tell us about yourself..."
+                      className="bg-secondary border-border min-h-[100px] resize-none"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -294,15 +522,24 @@ const Register = () => {
                 </Button>
               )}
               <Button
-                onClick={() => step < 3 ? setStep(step + 1) : null}
-                disabled={!canProceed()}
+                onClick={() => step < 3 ? setStep(step + 1) : handleRegister()}
+                disabled={!canProceed() || loading}
                 className={cn(
-                  "flex-1 bg-primary hover:bg-primary/90 text-primary-foreground",
+                  "flex-1 bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 text-primary-foreground font-semibold transition-all duration-300",
                   step === 1 && "w-full"
                 )}
               >
-                {step < 3 ? t.registration.next : t.registration.finish}
-                <ArrowRight className="w-4 h-4 ml-2" />
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  <>
+                    {step < 3 ? t.registration.next : t.registration.finish}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
               </Button>
             </div>
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
@@ -21,18 +22,18 @@ const Header = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
+    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center gap-2 group"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all duration-300 group-hover:scale-110">
               <span className="text-primary-foreground font-bold text-lg">G</span>
             </div>
-            <span className="text-xl font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
+            <span className="text-xl font-bold tracking-tight text-foreground group-hover:gradient-text transition-all duration-300">
               Gladiator Jobs
             </span>
           </Link>
@@ -56,23 +57,25 @@ const Header = () => {
           </nav>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
+
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg glass border border-border/50 text-sm hover:border-primary/50 transition-all duration-300 hover:scale-105"
             >
               <Globe className="w-4 h-4" />
-              <span className="uppercase">{language}</span>
+              <span className="uppercase font-medium">{language}</span>
             </button>
-            
+
             <Link to="/login">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground font-medium">
                 {t.nav.signIn}
               </Button>
             </Link>
-            
+
             <Link to="/register">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 text-primary-foreground font-semibold transition-all duration-300 hover:scale-105">
                 {t.nav.joinNow}
               </Button>
             </Link>
