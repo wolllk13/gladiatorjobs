@@ -2,9 +2,49 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 const HeroSection = () => {
   const { t } = useLanguage();
+  const [stats, setStats] = useState({
+    professionals: 0,
+    clients: 0,
+    reviews: 0,
+  });
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      // Count professionals
+      const { count: profCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_type', 'professional');
+
+      // Count clients
+      const { count: clientCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_type', 'client');
+
+      // Count reviews
+      const { count: reviewCount } = await supabase
+        .from('reviews')
+        .select('*', { count: 'exact', head: true });
+
+      setStats({
+        professionals: profCount || 0,
+        clients: clientCount || 0,
+        reviews: reviewCount || 0,
+      });
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -42,17 +82,6 @@ const HeroSection = () => {
             {t.hero.subtitle}
           </p>
 
-          {/* Online users indicator */}
-          <div className="flex items-center justify-center gap-2 mb-10 animate-fade-in stagger-3">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-            </span>
-            <span className="text-sm text-muted-foreground">
-              <span className="text-foreground font-medium">2,847</span> {t.hero.online}
-            </span>
-          </div>
-
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-scale-in stagger-4">
             <Button
@@ -78,19 +107,25 @@ const HeroSection = () => {
             </Link>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Real data from Supabase */}
           <div className="grid grid-cols-3 gap-8 mt-20 pt-10 border-t border-primary/20 animate-slide-up stagger-5">
             <div className="group cursor-default">
-              <p className="text-3xl md:text-4xl font-bold gradient-text group-hover:scale-110 transition-transform duration-300">5,000+</p>
+              <p className="text-3xl md:text-4xl font-bold gradient-text group-hover:scale-110 transition-transform duration-300">
+                {stats.professionals}
+              </p>
               <p className="text-sm text-muted-foreground mt-2 font-medium">{t.hero.stats.professionals}</p>
             </div>
             <div className="group cursor-default">
-              <p className="text-3xl md:text-4xl font-bold gradient-text group-hover:scale-110 transition-transform duration-300">850+</p>
+              <p className="text-3xl md:text-4xl font-bold gradient-text group-hover:scale-110 transition-transform duration-300">
+                {stats.clients}
+              </p>
               <p className="text-sm text-muted-foreground mt-2 font-medium">{t.hero.stats.companies}</p>
             </div>
             <div className="group cursor-default">
-              <p className="text-3xl md:text-4xl font-bold gradient-text group-hover:scale-110 transition-transform duration-300">42</p>
-              <p className="text-sm text-muted-foreground mt-2 font-medium">{t.hero.stats.countries}</p>
+              <p className="text-3xl md:text-4xl font-bold gradient-text group-hover:scale-110 transition-transform duration-300">
+                {stats.reviews}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2 font-medium">Reviews</p>
             </div>
           </div>
         </div>
