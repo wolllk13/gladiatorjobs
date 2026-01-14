@@ -15,6 +15,7 @@ const Footer = () => {
       { label: t.footer.about, href: '/about' },
       { label: t.footer.careers, href: '/careers' },
       { label: t.footer.blog, href: '/blog' },
+      { label: 'Feedback', href: '/feedback' },
       { label: t.footer.contact, href: '/contact' },
     ],
     legal: [

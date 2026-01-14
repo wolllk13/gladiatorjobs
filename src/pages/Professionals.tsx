@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, DollarSign, Star, Mail, Briefcase } from 'lucide-react';
+import { Search, MapPin, DollarSign, Star, Mail, Briefcase, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import ProfessionalProfileDialog from '@/components/ProfessionalProfileDialog';
+import AdvancedFilters, { FilterOptions } from '@/components/AdvancedFilters';
+import StarRating from '@/components/StarRating';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +34,10 @@ interface Professional {
   experience_years: number | null;
   hourly_rate: number | null;
   location: string | null;
+  average_rating?: number;
+  review_count?: number;
+  crypto_wallet_trc20?: string | null;
+  accepts_crypto?: boolean | null;
 }
 
 const Professionals = () => {
@@ -39,6 +46,15 @@ const Professionals = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterOptions>({
+    minPrice: null,
+    maxPrice: null,
+    minExperience: null,
+    hasPortfolio: false,
+    sortBy: 'newest',
+  });
 
   useEffect(() => {
     loadProfessionals();
@@ -46,18 +62,37 @@ const Professionals = () => {
 
   useEffect(() => {
     filterProfessionals();
-  }, [selectedCategory, searchQuery, professionals]);
+  }, [selectedCategory, searchQuery, professionals, filters]);
 
   const loadProfessionals = async () => {
     try {
-      const { data, error } = await supabase
+      // Load professionals
+      const { data: profData, error: profError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_type', 'professional')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setProfessionals(data || []);
+      if (profError) throw profError;
+
+      // Load ratings for each professional
+      const professionalsWithRatings = await Promise.all(
+        (profData || []).map(async (prof) => {
+          const { data: ratingData } = await supabase
+            .from('professional_ratings')
+            .select('average_rating, review_count')
+            .eq('professional_id', prof.id)
+            .single();
+
+          return {
+            ...prof,
+            average_rating: ratingData?.average_rating ? parseFloat(ratingData.average_rating) : undefined,
+            review_count: ratingData?.review_count || 0,
+          };
+        })
+      );
+
+      setProfessionals(professionalsWithRatings);
     } catch (error) {
       console.error('Error loading professionals:', error);
     } finally {
@@ -65,7 +100,7 @@ const Professionals = () => {
     }
   };
 
-  const filterProfessionals = () => {
+  const filterProfessionals = async () => {
     let filtered = [...professionals];
 
     // Filter by category
@@ -83,7 +118,73 @@ const Professionals = () => {
       );
     }
 
+    // Filter by price range
+    if (filters.minPrice !== null) {
+      filtered = filtered.filter(p =>
+        p.hourly_rate !== null && p.hourly_rate >= filters.minPrice!
+      );
+    }
+    if (filters.maxPrice !== null) {
+      filtered = filtered.filter(p =>
+        p.hourly_rate !== null && p.hourly_rate <= filters.maxPrice!
+      );
+    }
+
+    // Filter by experience
+    if (filters.minExperience !== null) {
+      filtered = filtered.filter(p =>
+        p.experience_years !== null && p.experience_years >= filters.minExperience!
+      );
+    }
+
+    // Filter by portfolio
+    if (filters.hasPortfolio) {
+      // Get professionals with portfolio items
+      const professionalsWithPortfolio = await Promise.all(
+        filtered.map(async (prof) => {
+          const { count } = await supabase
+            .from('portfolio_items')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', prof.id);
+          return { ...prof, hasPortfolio: (count ?? 0) > 0 };
+        })
+      );
+      filtered = professionalsWithPortfolio.filter(p => p.hasPortfolio);
+    }
+
+    // Sort
+    switch (filters.sortBy) {
+      case 'price-low':
+        filtered.sort((a, b) => (a.hourly_rate ?? Infinity) - (b.hourly_rate ?? Infinity));
+        break;
+      case 'price-high':
+        filtered.sort((a, b) => (b.hourly_rate ?? 0) - (a.hourly_rate ?? 0));
+        break;
+      case 'experience':
+        filtered.sort((a, b) => (b.experience_years ?? 0) - (a.experience_years ?? 0));
+        break;
+      case 'newest':
+      default:
+        // Already sorted by created_at DESC from the query
+        break;
+    }
+
     setFilteredProfessionals(filtered);
+  };
+
+  const handleViewProfile = (professional: Professional) => {
+    setSelectedProfessional(professional);
+    setDialogOpen(true);
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (filters.minPrice !== null) count++;
+    if (filters.maxPrice !== null) count++;
+    if (filters.minExperience !== null) count++;
+    if (filters.hasPortfolio) count++;
+    if (filters.sortBy !== 'newest') count++;
+    return count;
   };
 
   return (
@@ -104,14 +205,21 @@ const Professionals = () => {
 
           {/* Search Bar */}
           <div className="mb-8 animate-slide-up">
-            <div className="relative max-w-2xl mx-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search by name, skills, or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 py-6 glass border-border/50 text-lg"
+            <div className="flex gap-3 max-w-2xl mx-auto">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search by name, skills, or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 py-6 glass border-border/50 text-lg"
+                />
+              </div>
+              <AdvancedFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                activeFiltersCount={getActiveFiltersCount()}
               />
             </div>
           </div>
@@ -208,6 +316,18 @@ const Professionals = () => {
                       </div>
                     )}
 
+                    {/* Rating */}
+                    {professional.average_rating !== undefined && professional.review_count! > 0 && (
+                      <div className="mb-3">
+                        <div className="flex items-center gap-2">
+                          <StarRating rating={professional.average_rating} size="sm" showNumber />
+                          <span className="text-xs text-muted-foreground">
+                            ({professional.review_count} {professional.review_count === 1 ? 'review' : 'reviews'})
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Meta Info */}
                     <div className="space-y-2 mb-4 text-sm text-muted-foreground">
                       {professional.location && (
@@ -230,12 +350,13 @@ const Professionals = () => {
                       )}
                     </div>
 
-                    {/* Contact Button */}
+                    {/* View Profile Button */}
                     <Button
+                      onClick={() => handleViewProfile(professional)}
                       className="w-full bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 text-primary-foreground transition-all duration-300 group-hover:scale-105"
                     >
-                      <Mail className="w-4 h-4 mr-2" />
-                      Contact
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Profile
                     </Button>
                   </div>
                 </Card>
@@ -244,6 +365,15 @@ const Professionals = () => {
           )}
         </div>
       </main>
+
+      {/* Professional Profile Dialog */}
+      {selectedProfessional && (
+        <ProfessionalProfileDialog
+          professional={selectedProfessional}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+        />
+      )}
 
       <Footer />
     </div>

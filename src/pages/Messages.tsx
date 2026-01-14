@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, Loader2, ArrowLeft, Mail } from 'lucide-react';
+import { Send, Loader2, ArrowLeft, Mail, User, Reply } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import SendMessageDialog from '@/components/SendMessageDialog';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,6 +37,8 @@ const Messages = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
+  const [replyRecipient, setReplyRecipient] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     checkAuthAndLoadMessages();
@@ -91,6 +95,24 @@ const Messages = () => {
       return `${days} days ago`;
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+  };
+
+  const handleReply = (userId: string, userName: string) => {
+    setReplyRecipient({ id: userId, name: userName });
+    setReplyDialogOpen(true);
+  };
+
+  const markAsRead = async (messageId: string, isReceived: boolean) => {
+    if (!isReceived) return; // Only mark received messages as read
+
+    try {
+      await supabase
+        .from('messages')
+        .update({ read: true })
+        .eq('id', messageId);
+    } catch (error) {
+      console.error('Error marking message as read:', error);
     }
   };
 
@@ -188,11 +210,27 @@ const Messages = () => {
                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                           {message.message}
                         </p>
-                        {!message.read && isReceived && (
-                          <span className="inline-block mt-2 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                            New
-                          </span>
-                        )}
+                        <div className="flex items-center gap-3 mt-3">
+                          {!message.read && isReceived && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                              New
+                            </span>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              handleReply(otherUser.id, otherUser.full_name || 'User');
+                              if (!message.read && isReceived) {
+                                markAsRead(message.id, isReceived);
+                              }
+                            }}
+                            className="glass border-border/50 hover:border-primary/50"
+                          >
+                            <Reply className="w-3 h-3 mr-1" />
+                            Reply
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </Card>
@@ -213,6 +251,24 @@ const Messages = () => {
           </Card>
         </div>
       </main>
+
+      {/* Reply Dialog */}
+      {replyRecipient && (
+        <SendMessageDialog
+          recipientId={replyRecipient.id}
+          recipientName={replyRecipient.name}
+          open={replyDialogOpen}
+          onOpenChange={(open) => {
+            setReplyDialogOpen(open);
+            if (!open) {
+              // Reload messages after sending
+              if (currentUserId) {
+                loadMessages(currentUserId);
+              }
+            }
+          }}
+        />
+      )}
 
       <Footer />
     </div>

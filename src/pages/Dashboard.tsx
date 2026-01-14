@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Camera, LogOut, Save, Plus, Trash2, Loader2 } from 'lucide-react';
+import { User, Camera, LogOut, Save, Trash2, Loader2, ExternalLink, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PortfolioDialog from '@/components/PortfolioDialog';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -28,6 +31,8 @@ interface Profile {
   company_description: string | null;
   website: string | null;
   phone: string | null;
+  crypto_wallet_trc20: string | null;
+  accepts_crypto: boolean | null;
 }
 
 interface PortfolioItem {
@@ -145,6 +150,8 @@ const Dashboard = () => {
         updateData.experience_years = profile.experience_years;
         updateData.hourly_rate = profile.hourly_rate;
         updateData.location = profile.location;
+        updateData.crypto_wallet_trc20 = profile.crypto_wallet_trc20;
+        updateData.accepts_crypto = profile.accepts_crypto;
       } else {
         updateData.company_name = profile.company_name;
         updateData.company_description = profile.company_description;
@@ -181,6 +188,42 @@ const Dashboard = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/');
+  };
+
+  const handleDeleteProject = async (projectId: string, imageUrl: string | null) => {
+    try {
+      // Delete image from storage if exists
+      if (imageUrl) {
+        const urlParts = imageUrl.split('/');
+        const fileName = urlParts.slice(-2).join('/'); // Get "userId/filename.ext"
+        await supabase.storage.from('portfolio').remove([fileName]);
+      }
+
+      // Delete portfolio item
+      const { error } = await supabase
+        .from('portfolio_items')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      // Refresh portfolio
+      if (profile) {
+        await loadPortfolio(profile.id);
+      }
+
+      toast({
+        title: 'Project deleted',
+        description: 'Your project has been removed from the portfolio',
+      });
+    } catch (error: any) {
+      console.error('Error deleting project:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete project',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (loading) {
@@ -340,6 +383,49 @@ const Dashboard = () => {
                           className="glass border-border/50"
                         />
                       </div>
+
+                      {/* Crypto Payment Settings */}
+                      <div className="pt-4 border-t border-border/50">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Wallet className="w-5 h-5 text-primary" />
+                          <h4 className="text-lg font-semibold text-foreground">Crypto Payments (USDT TRC20)</h4>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between p-4 glass border border-border/50 rounded-lg">
+                            <div className="flex-1">
+                              <Label htmlFor="accepts-crypto" className="text-sm font-medium text-foreground">
+                                Accept Crypto Payments
+                              </Label>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Allow clients to pay you with USDT on TRC20 network
+                              </p>
+                            </div>
+                            <Switch
+                              id="accepts-crypto"
+                              checked={profile.accepts_crypto || false}
+                              onCheckedChange={(checked) => setProfile({ ...profile, accepts_crypto: checked })}
+                            />
+                          </div>
+
+                          {profile.accepts_crypto && (
+                            <div>
+                              <label className="block text-sm font-medium text-foreground mb-2">
+                                USDT TRC20 Wallet Address
+                              </label>
+                              <Input
+                                value={profile.crypto_wallet_trc20 || ''}
+                                onChange={(e) => setProfile({ ...profile, crypto_wallet_trc20: e.target.value })}
+                                placeholder="TXXXxxxXXXxxxXXXxxxXXXxxx..."
+                                className="glass border-border/50 font-mono text-sm"
+                              />
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Enter your TRON (TRC20) wallet address to receive USDT payments
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </>
                   ) : (
                     <>
@@ -425,12 +511,10 @@ const Dashboard = () => {
             <div className="mt-8 animate-fade-in stagger-1">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold gradient-text">Portfolio</h3>
-                <Button
-                  className="bg-gradient-to-r from-primary to-accent hover:shadow-lg text-primary-foreground"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Project
-                </Button>
+                <PortfolioDialog
+                  userId={profile.id}
+                  onProjectAdded={() => loadPortfolio(profile.id)}
+                />
               </div>
 
               {portfolio.length === 0 ? (
@@ -442,17 +526,42 @@ const Dashboard = () => {
                   {portfolio.map((item) => (
                     <Card key={item.id} className="glass border-border/50 overflow-hidden group hover:border-primary/50 transition-all duration-300">
                       {item.image_url && (
-                        <img
-                          src={item.image_url}
-                          alt={item.title}
-                          className="w-full h-48 object-cover"
-                        />
+                        <div className="relative h-48 overflow-hidden">
+                          <img
+                            src={item.image_url}
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
                       )}
                       <div className="p-4">
-                        <h4 className="font-bold text-foreground mb-2">{item.title}</h4>
-                        <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-bold text-foreground flex-1">{item.title}</h4>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteProject(item.id, item.image_url)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        {item.description && (
+                          <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
+                        )}
+                        {item.project_url && (
+                          <a
+                            href={item.project_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-sm text-primary hover:underline mb-3"
+                          >
+                            View Project
+                            <ExternalLink className="w-3 h-3 ml-1" />
+                          </a>
+                        )}
                         {item.tags && item.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-2 mt-3">
                             {item.tags.map((tag, i) => (
                               <span key={i} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
                                 {tag}
